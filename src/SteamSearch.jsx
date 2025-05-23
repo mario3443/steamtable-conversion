@@ -27,7 +27,6 @@ export default function SteamSearch() {
 
     try {
       const response = await fetch("http://127.0.0.1:5000/api/saturated", {
-        // 之後要換成API網址
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -38,6 +37,13 @@ export default function SteamSearch() {
       if (!response.ok) throw new Error("伺服器錯誤");
 
       const data = await response.json();
+
+      if (!data.matches || data.matches.length === 0) {
+        setError("查無符合條件的資料，請更換範圍重新搜尋");
+        setResults([]);
+        return;
+      }
+
       setResults(data.matches);
       setError("");
     } catch (err) {
