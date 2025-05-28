@@ -16,6 +16,13 @@ superheat_df.columns = [
     "Density (kg/m3)", "Internal Energy (kJ/kg)", "Enthalpy (kJ/kg)",
     "Entropy (kJ/kg.K)", "Phase"
 ]
+# 去除欄位名稱的前後空白
+superheat_df.columns = superheat_df.columns.str.strip()
+
+# 將數值欄位轉為數字型態，Phase 欄位保留為字串
+for col in superheat_df.columns:
+    if col != "Phase":  # Phase 是字串，不轉
+        superheat_df[col] = pd.to_numeric(superheat_df[col], errors="coerce")
 
 # 查詢 F=1
 @app.route("/api/saturated", methods=["POST"])
