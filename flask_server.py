@@ -36,14 +36,18 @@ def query_saturated():
         for df, label in [(pres_df, "by_pressure"), (temp_df, "by_temperature")]:
             if prop not in df.columns:
                 continue
-            filtered = df[(df[prop] - val).abs() <= 0.5]
-            for _, row in filtered.iterrows():
-                result.append({
-                    "source": label,
-                    "match_on": prop,
-                    "value": row[prop],
-                    "data": row.to_dict()
-                })
+            df = df.copy()  # F=1時也只顯示最接近的三筆數據
+            df["_diff"] = (df[prop] - val).abs()
+            filtered = df[df["_diff"] <= 0.5].nsmallest(3, "_diff")
+
+        for _, row in filtered.iterrows():
+            result.append({
+                "source": label,
+                "match_on": prop,
+                "value": row[prop],
+                "data": row.drop("_diff").to_dict()
+            })
+
 
         return jsonify({"matches": result})
     except Exception as e:

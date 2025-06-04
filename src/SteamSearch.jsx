@@ -26,11 +26,8 @@ const f2Options = [
 export default function SteamSearch() {
   const [mode, setMode] = useState("f1");
 
-  // F1 State
   const [property, setProperty] = useState("Hg (kJ/kg)");
   const [value, setValue] = useState("");
-
-  // F2 State
   const [prop1, setProp1] = useState("Pressure (MPa)");
   const [val1, setVal1] = useState("");
   const [prop2, setProp2] = useState("Temperature (°C)");
@@ -38,13 +35,16 @@ export default function SteamSearch() {
 
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
+  const [history, setHistory] = useState([]);
 
   const handleSearch = async () => {
     try {
       let response;
+      let queryInfo;
 
       if (mode === "f1") {
         if (!value) return setError("請輸入數值");
+        queryInfo = `F=1 | ${property} = ${value}`;
 
         response = await fetch("http://127.0.0.1:5000/api/saturated", {
           method: "POST",
@@ -53,6 +53,7 @@ export default function SteamSearch() {
         });
       } else {
         if (!val1 || !val2) return setError("請輸入兩個性質的值");
+        queryInfo = `F=2 | ${prop1} = ${val1}, ${prop2} = ${val2}`;
 
         response = await fetch("http://127.0.0.1:5000/api/superheated", {
           method: "POST",
@@ -76,6 +77,10 @@ export default function SteamSearch() {
       }
 
       setResults(data.matches);
+      setHistory((prev) => [
+        { query: queryInfo, results: data.matches },
+        ...prev,
+      ]);
       setError("");
     } catch (err) {
       setError("查詢失敗：" + err.message);
@@ -172,7 +177,8 @@ export default function SteamSearch() {
               }}
             >
               <p>
-                <strong>匹配值：</strong> {res.value.join(", ")}
+                <strong>匹配值：</strong>{" "}
+                {Array.isArray(res.value) ? res.value.join(", ") : res.value}
                 <br />
                 <strong>資料內容：</strong>
               </p>
@@ -186,6 +192,41 @@ export default function SteamSearch() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          ))}
+        </div>
+      )}
+      {/* 新增查詢歷史 */}
+      {history.length > 0 && (
+        <div style={{ marginTop: "3rem" }}>
+          <h3>查詢歷史：</h3>
+          {history.map((entry, idx) => (
+            <div key={idx}>
+              <p>
+                <strong>條件：</strong>
+                {entry.query}
+              </p>
+              {/* 修正array在F=1會出問題的bug */}
+              {entry.results.map((res, i) => (
+                <div key={i} style={{ marginBottom: "1rem" }}>
+                  <p>
+                    <strong>匹配值：</strong>{" "}
+                    {Array.isArray(res.value)
+                      ? res.value.join(", ")
+                      : res.value}
+                  </p>
+                  <table>
+                    <tbody>
+                      {Object.entries(res.data).map(([key, val]) => (
+                        <tr key={key}>
+                          <td style={{ paddingRight: "1rem" }}>{key}</td>
+                          <td>{val}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
             </div>
           ))}
         </div>
