@@ -88,6 +88,18 @@ export default function SteamSearch() {
     }
   };
 
+  const handleClearHistory = () => {
+    setHistory([]);
+  };
+  {
+    /* 使用性優化，增加輸入enter可以直接搜尋 */
+  }
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
     <div style={{ maxWidth: "700px", margin: "auto", padding: "2rem" }}>
       <h1>蒸氣性質查詢工具</h1>
@@ -120,6 +132,7 @@ export default function SteamSearch() {
               type="number"
               value={value}
               onChange={(e) => setValue(e.target.value)}
+              onKeyDown={handleKeyDown}
               step="any"
             />
           </label>
@@ -137,6 +150,7 @@ export default function SteamSearch() {
               type="number"
               value={val1}
               onChange={(e) => setVal1(e.target.value)}
+              onKeyDown={handleKeyDown}
               step="any"
             />
           </label>
@@ -152,6 +166,7 @@ export default function SteamSearch() {
               type="number"
               value={val2}
               onChange={(e) => setVal2(e.target.value)}
+              onKeyDown={handleKeyDown}
               step="any"
             />
           </label>
@@ -200,6 +215,11 @@ export default function SteamSearch() {
       {history.length > 0 && (
         <div style={{ marginTop: "3rem" }}>
           <h3>查詢歷史：</h3>
+          <p>以下是您過去的查詢紀錄：</p>
+          {/* 新增清除歷史按鈕 */}
+          <button onClick={handleClearHistory} style={{ marginBottom: "1rem" }}>
+            清除歷史紀錄
+          </button>
           {history.map((entry, idx) => (
             <div key={idx}>
               <p>
